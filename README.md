@@ -1,7 +1,3 @@
-Here is the complete, professional summary with your ASCII architecture flowchart integrated perfectly into the design. I have enclosed the flowchart in a code block so that the spacing and alignment remain crisp and easy to read on GitHub or any text editor.
-
-***
-
 ### SmartIngest: AI-Augmented Medallion Data Pipeline
 
 **Project Overview**
