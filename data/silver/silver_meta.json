@@ -1,0 +1,77 @@
+{
+  "layer": "silver",
+  "run_ts": "2026-04-22T13-57-30",
+  "reports": {
+    "crop": {
+      "source": "crop",
+      "rows_in": 5100,
+      "rows_out": 4228,
+      "rows_dropped": 872,
+      "drop_rate": 0.171,
+      "null_rates": {
+        "state_name": 0.0,
+        "district_name": 0.0452,
+        "crop_year": 0.0,
+        "season": 0.0416,
+        "crop": 0.0,
+        "area_hectares": 0.0371,
+        "yield_kg_per_ha": 0.0404,
+        "production_tonnes": 0.0
+      },
+      "high_null_cols": [],
+      "schema_errors": [],
+      "flags": [
+        "HIGH_DROP_RATE:17.10%",
+        "DUPES_REMOVED:118"
+      ],
+      "clean": false
+    },
+    "hospital": {
+      "source": "hospital",
+      "rows_in": 3000,
+      "rows_out": 3000,
+      "rows_dropped": 0,
+      "drop_rate": 0.0,
+      "null_rates": {
+        "hospital_id": 0.0,
+        "hospital_name": 0.0,
+        "state": 0.0,
+        "district": 0.0,
+        "hospital_type": 0.0,
+        "speciality": 0.0,
+        "beds_total": 0.0,
+        "beds_available": 0.055,
+        "doctors_count": 0.0293,
+        "nurses_count": 0.0,
+        "established_year": 0.0,
+        "accredited": 0.0,
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "last_updated": 0.0
+      },
+      "high_null_cols": [],
+      "schema_errors": [],
+      "flags": [],
+      "clean": true
+    },
+    "weather": {
+      "source": "weather",
+      "rows_in": 37,
+      "rows_out": 37,
+      "rows_dropped": 0,
+      "drop_rate": 0.0,
+      "null_rates": {
+        "date": 0.0,
+        "temp_max_c": 0.0,
+        "temp_min_c": 0.0,
+        "precipitation_mm": 0.0,
+        "windspeed_max_kph": 0.0
+      },
+      "high_null_cols": [],
+      "schema_errors": [],
+      "flags": [],
+      "clean": true
+    }
+  },
+  "total_flags": 2
+}

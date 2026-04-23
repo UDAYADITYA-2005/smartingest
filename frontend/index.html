@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SmartIngest — Pipeline Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#080b10;--surface:#0d1117;--surface2:#131923;--border:#1e2a38;--border2:#263345;
+  --accent:#00d4ff;--accent2:#7b61ff;--gold:#f5c842;--silver:#9db8c8;--bronze:#d4845a;
+  --green:#22c55e;--red:#f43f5e;--amber:#f59e0b;
+  --text:#e2eaf4;--text2:#7b91a8;--text3:#3d5068;
+  --font-head:'Syne',sans-serif;--font-mono:'DM Mono',monospace;--font-body:'Inter',sans-serif;
+  --r:12px;--r2:20px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden;}
+::-webkit-scrollbar{width:5px;} ::-webkit-scrollbar-track{background:var(--surface);} ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.app{display:flex;min-height:100vh;}
+/* SIDEBAR */
+.sidebar{width:236px;min-width:236px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;padding:24px 0;}
+.sidebar-logo{padding:0 20px 22px;border-bottom:1px solid var(--border);}
+.logo-mark{display:flex;align-items:center;gap:9px;margin-bottom:3px;}
+.logo-icon{width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.logo-text{font-family:var(--font-head);font-weight:800;font-size:17px;letter-spacing:-0.5px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.logo-sub{font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
+.sidebar-nav{flex:1;padding:16px 10px;display:flex;flex-direction:column;gap:3px;}
+.nav-label{font-family:var(--font-mono);font-size:9px;font-weight:500;color:var(--text3);letter-spacing:2px;text-transform:uppercase;padding:8px 12px 3px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:7px;cursor:pointer;color:var(--text2);font-size:13px;transition:all 0.14s;border:1px solid transparent;user-select:none;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:rgba(0,212,255,0.07);border-color:rgba(0,212,255,0.18);color:var(--accent);}
+.nav-icon{font-size:14px;width:17px;text-align:center;}
+.nav-badge{margin-left:auto;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:1px 7px;font-family:var(--font-mono);font-size:10px;color:var(--text3);}
+.nav-badge.warn{background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.28);color:var(--amber);}
+.nav-badge.ok{background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.25);color:var(--green);}
+.sidebar-footer{padding:14px 20px 0;border-top:1px solid var(--border);}
+.run-btn{width:100%;padding:9px 0;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:7px;color:#080b10;font-family:var(--font-head);font-weight:700;font-size:13px;cursor:pointer;transition:opacity 0.14s,transform 0.1s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.run-btn:hover{opacity:.88;transform:translateY(-1px);}
+/* MAIN */
+.main{flex:1;overflow:hidden;}
+.page{display:none;padding:32px 36px;animation:fadeIn 0.2s ease;}
+.page.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
+/* HEADER */
+.page-header{margin-bottom:28px;}
+.page-header h1{font-family:var(--font-head);font-weight:800;font-size:26px;letter-spacing:-0.8px;line-height:1.1;}
+.page-header p{color:var(--text2);margin-top:5px;font-size:13px;}
+.breadcrumb{font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-bottom:8px;letter-spacing:.4px;}
+.breadcrumb span{color:var(--accent);}
+.status-row{display:flex;align-items:center;gap:10px;margin-top:10px;}
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-family:var(--font-mono);font-size:10px;font-weight:500;letter-spacing:.4px;}
+.status-pill.ok{background:rgba(34,197,94,.09);border:1px solid rgba(34,197,94,.23);color:var(--green);}
+.status-pill.warn{background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.23);color:var(--amber);}
+.pulse{width:5px;height:5px;border-radius:50%;background:currentColor;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+/* GRID */
+.grid{display:grid;gap:14px;}
+.g2{grid-template-columns:1fr 1fr;}
+.g3{grid-template-columns:1fr 1fr 1fr;}
+.g4{grid-template-columns:repeat(4,1fr);}
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:22px;position:relative;overflow:hidden;transition:border-color .18s;}
+.card:hover{border-color:var(--border2);}
+.card-sm{padding:16px 18px;}
+/* KPI */
+.kpi-label{font-family:var(--font-mono);font-size:9px;font-weight:500;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;gap:5px;}
+.kpi-dot{width:5px;height:5px;border-radius:50%;}
+.kpi-val{font-family:var(--font-head);font-weight:800;font-size:32px;letter-spacing:-1.4px;line-height:1;}
+.kpi-unit{font-size:13px;font-weight:400;color:var(--text2);margin-left:3px;}
+.kpi-sub{margin-top:6px;font-size:11px;color:var(--text2);}
+.kpi-bar{margin-top:12px;height:3px;background:var(--border);border-radius:2px;}
+.kpi-bar-fill{height:100%;border-radius:2px;}
+/* LAYER FLOW */
+.layer-flow{display:flex;align-items:stretch;}
+.layer-box{flex:1;padding:18px;border-right:1px solid var(--border);position:relative;}
+.layer-box:last-child{border-right:none;}
+.layer-badge{font-family:var(--font-mono);font-size:9px;font-weight:500;letter-spacing:2px;text-transform:uppercase;padding:2px 7px;border-radius:4px;display:inline-block;margin-bottom:9px;}
+.lb-bronze{background:rgba(212,132,90,.13);color:var(--bronze);border:1px solid rgba(212,132,90,.22);}
+.lb-silver{background:rgba(157,184,200,.1);color:var(--silver);border:1px solid rgba(157,184,200,.18);}
+.lb-gold{background:rgba(245,200,66,.1);color:var(--gold);border:1px solid rgba(245,200,66,.18);}
+.lb-ai{background:rgba(123,97,255,.1);color:var(--accent2);border:1px solid rgba(123,97,255,.18);}
+.layer-num{font-family:var(--font-head);font-weight:800;font-size:26px;letter-spacing:-1px;line-height:1;}
+.layer-unit{font-size:11px;font-weight:400;color:var(--text2);}
+.layer-desc{font-size:11px;color:var(--text2);margin-top:5px;line-height:1.5;}
+.layer-arr{position:absolute;right:-9px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;z-index:2;}
+/* SECTION HEAD */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sec-title{font-family:var(--font-head);font-weight:700;font-size:15px;letter-spacing:-.3px;}
+.sec-meta{font-family:var(--font-mono);font-size:10px;color:var(--text3);}
+/* CHART */
+.chart-wrap canvas{max-height:250px;}
+/* TABLE */
+.dt{width:100%;border-collapse:collapse;}
+.dt th{font-family:var(--font-mono);font-size:9px;font-weight:500;color:var(--text3);letter-spacing:1px;text-transform:uppercase;padding:9px 12px;text-align:left;border-bottom:1px solid var(--border);}
+.dt td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2);}
+.dt tr:last-child td{border-bottom:none;}
+.dt tr:hover td{background:rgba(255,255,255,.01);color:var(--text);}
+.td-m{color:var(--text)!important;font-weight:500;}
+.td-mono{font-family:var(--font-mono);font-size:11px;}
+/* RANK */
+.rank{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:5px;font-family:var(--font-mono);font-size:10px;font-weight:500;}
+.r1{background:rgba(245,200,66,.13);color:var(--gold);border:1px solid rgba(245,200,66,.2);}
+.r2{background:rgba(157,184,200,.1);color:var(--silver);border:1px solid rgba(157,184,200,.18);}
+.r3{background:rgba(212,132,90,.1);color:var(--bronze);border:1px solid rgba(212,132,90,.18);}
+.rn{background:var(--surface2);color:var(--text3);border:1px solid var(--border);}
+/* PROG */
+.prog{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.prog-f{height:100%;border-radius:2px;}
+/* TIMELINE */
+.tl-item{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);}
+.tl-item:last-child{border-bottom:none;}
+.tl-icon{width:30px;min-width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;margin-top:1px;}
+.tl-icon.ok{background:rgba(34,197,94,.09);}
+.tl-icon.warn{background:rgba(245,158,11,.09);}
+.tl-name{font-weight:500;font-size:13px;color:var(--text);}
+.tl-det{font-family:var(--font-mono);font-size:10px;color:var(--text2);margin-top:2px;}
+.tl-time{margin-left:auto;font-family:var(--font-mono);font-size:10px;color:var(--text3);white-space:nowrap;}
+/* CHIPS */
+.flag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:5px;font-size:10px;font-family:var(--font-mono);background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.18);color:var(--amber);margin:3px 3px 0 0;}
+.chip{padding:5px 12px;border-radius:7px;background:var(--surface2);border:1px solid var(--border2);font-size:11px;color:var(--text2);font-family:var(--font-mono);transition:all .14s;}
+.chip:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,.04);}
+/* ENDPOINTS */
+.ep-list{display:flex;flex-direction:column;gap:7px;}
+.ep{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;background:var(--surface2);border:1px solid var(--border);font-family:var(--font-mono);font-size:11px;transition:border-color .14s;}
+.ep:hover{border-color:var(--border2);}
+.method{font-size:9px;font-weight:600;padding:2px 7px;border-radius:3px;min-width:38px;text-align:center;}
+.get{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.18);}
+.post{background:rgba(0,212,255,.09);color:var(--accent);border:1px solid rgba(0,212,255,.18);}
+.ep-path{color:var(--text);}
+.ep-desc{margin-left:auto;color:var(--text3);font-size:10px;}
+/* RING */
+.ring-wrap{width:100px;height:100px;position:relative;margin:0 auto 12px;}
+.ring-wrap svg{transform:rotate(-90deg);}
+.ring-track{fill:none;stroke:var(--border);stroke-width:8;}
+.ring-fill{fill:none;stroke-width:8;stroke-linecap:round;}
+.ring-lbl{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:17px;font-weight:500;}
+.ring-sub{font-size:8px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
+/* REPORT */
+.report-body{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:18px 22px;font-size:13px;line-height:1.75;color:var(--text2);}
+.report-body strong{color:var(--text);font-weight:600;}
+.report-body p{margin-bottom:10px;}
+.report-body p:last-child{margin-bottom:0;}
+@media(max-width:900px){.g4{grid-template-columns:1fr 1fr;}.g3{grid-template-columns:1fr 1fr;}.g2{grid-template-columns:1fr;}.layer-flow{flex-direction:column;}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark"><div class="logo-icon">⚡</div><div class="logo-text">SmartIngest</div></div>
+    <div class="logo-sub">v1.0.0 · Pipeline Intelligence</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Overview</div>
+    <div class="nav-item active" data-page="overview"><span class="nav-icon">◈</span> Dashboard</div>
+    <div class="nav-item" data-page="pipeline"><span class="nav-icon">⟳</span> Pipeline Runs <span class="nav-badge ok">OK</span></div>
+    <div class="nav-label" style="margin-top:8px">Medallion Layers</div>
+    <div class="nav-item" data-page="bronze"><span class="nav-icon">🥉</span> Bronze <span class="nav-badge">8,130</span></div>
+    <div class="nav-item" data-page="silver"><span class="nav-icon">🥈</span> Silver <span class="nav-badge warn">2 flags</span></div>
+    <div class="nav-item" data-page="gold"><span class="nav-icon">🥇</span> Gold <span class="nav-badge">6 tables</span></div>
+    <div class="nav-label" style="margin-top:8px">AI Layer</div>
+    <div class="nav-item" data-page="anomaly"><span class="nav-icon">🔍</span> Anomaly Detection</div>
+    <div class="nav-item" data-page="report"><span class="nav-icon">📄</span> Health Report</div>
+    <div class="nav-label" style="margin-top:8px">Serving</div>
+    <div class="nav-item" data-page="api"><span class="nav-icon">⚙</span> API Endpoints</div>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="run-btn" onclick="simulateRun()">▶ Run Pipeline</button>
+    <div style="margin-top:8px;font-family:var(--font-mono);font-size:9px;color:var(--text3);text-align:center;">Last run: 2026-04-20 · 0.80s</div>
+  </div>
+</aside>
+
+<main class="main">
+
+<!-- OVERVIEW -->
+<div class="page active" id="page-overview">
+  <div class="page-header">
+    <div class="breadcrumb">smartingest / <span>overview</span></div>
+    <h1>Pipeline Dashboard</h1>
+    <p>Real-time visibility across all medallion layers and AI components.</p>
+    <div class="status-row">
+      <div class="status-pill ok"><div class="pulse"></div>All systems nominal</div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3)">Last run: 2026-04-20 08:00 UTC</div>
+    </div>
+  </div>
+  <div class="grid g4" style="margin-bottom:14px">
+    <div class="card"><div class="kpi-label"><div class="kpi-dot" style="background:var(--bronze)"></div>Total Ingested</div><div class="kpi-val">8,130<span class="kpi-unit">rows</span></div><div class="kpi-sub">3 sources · Bronze</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:100%;background:var(--bronze)"></div></div></div>
+    <div class="card"><div class="kpi-label"><div class="kpi-dot" style="background:var(--silver)"></div>After Cleaning</div><div class="kpi-val">7,251<span class="kpi-unit">rows</span></div><div class="kpi-sub">89.2% retention</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:89%;background:var(--silver)"></div></div></div>
+    <div class="card"><div class="kpi-label"><div class="kpi-dot" style="background:var(--gold)"></div>Gold Tables</div><div class="kpi-val">6<span class="kpi-unit">tables</span></div><div class="kpi-sub">1,030 aggregate rows</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:60%;background:var(--gold)"></div></div></div>
+    <div class="card"><div class="kpi-label"><div class="kpi-dot" style="background:var(--green)"></div>Anomaly Score</div><div class="kpi-val" style="color:var(--green)">−0.43</div><div class="kpi-sub" style="color:var(--green)">✓ No anomalies</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:43%;background:var(--green)"></div></div></div>
+  </div>
+  <div class="card" style="margin-bottom:14px;padding:0;overflow:hidden">
+    <div class="layer-flow">
+      <div class="layer-box" style="background:rgba(212,132,90,.03)"><div class="layer-badge lb-bronze">Bronze</div><div class="layer-num">8,130<span class="layer-unit"> rows</span></div><div class="layer-desc">CSV + JSON + REST API<br>Raw Parquet + metadata</div><div class="layer-arr">›</div></div>
+      <div class="layer-box" style="background:rgba(157,184,200,.03)"><div class="layer-badge lb-silver">Silver</div><div class="layer-num">7,251<span class="layer-unit"> rows</span></div><div class="layer-desc">Schema enforced<br>Deduped · Validated</div><div class="layer-arr">›</div></div>
+      <div class="layer-box" style="background:rgba(245,200,66,.03)"><div class="layer-badge lb-gold">Gold</div><div class="layer-num">6<span class="layer-unit"> tables</span></div><div class="layer-desc">DuckDB SQL<br>Window fns · JOINs</div><div class="layer-arr">›</div></div>
+      <div class="layer-box" style="background:rgba(123,97,255,.03)"><div class="layer-badge lb-ai">AI Layer</div><div class="layer-num" style="font-size:18px;color:var(--accent2)">IsoForest</div><div class="layer-desc">Isolation Forest<br>+ Gemini NL Report</div></div>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-bottom:14px">
+    <div class="card"><div class="sec-head"><div class="sec-title">Row Flow by Source</div><div class="sec-meta">Bronze → Silver</div></div><div class="chart-wrap"><canvas id="rowFlowChart"></canvas></div></div>
+    <div class="card"><div class="sec-head"><div class="sec-title">Gold Table Sizes</div><div class="sec-meta">Rows per table</div></div><div class="chart-wrap"><canvas id="goldChart"></canvas></div></div>
+  </div>
+  <div class="grid g3">
+    <div class="card card-sm"><div class="kpi-label" style="color:#4ade80">🌾 Agriculture</div><div style="font-family:var(--font-head);font-weight:800;font-size:20px;letter-spacing:-.5px">287 <span style="font-size:11px;font-weight:400;color:var(--text2)">MT total</span></div><div style="font-size:11px;color:var(--text2);margin-top:3px">15 states · 10 crops · 14 years</div></div>
+    <div class="card card-sm"><div class="kpi-label" style="color:#f87171">🏥 Healthcare</div><div style="font-family:var(--font-head);font-weight:800;font-size:20px;letter-spacing:-.5px">3,000 <span style="font-size:11px;font-weight:400;color:var(--text2)">hospitals</span></div><div style="font-size:11px;color:var(--text2);margin-top:3px">1.22M beds · 290K doctors</div></div>
+    <div class="card card-sm"><div class="kpi-label" style="color:#60a5fa">🌤 Weather</div><div style="font-family:var(--font-head);font-weight:800;font-size:20px;letter-spacing:-.5px">15.4 <span style="font-size:11px;font-weight:400;color:var(--text2)">mm/day avg</span></div><div style="font-size:11px;color:var(--text2);margin-top:3px">New Delhi · 30-day window</div></div>
+  </div>
+</div>
+
+<!-- PIPELINE -->
+<div class="page" id="page-pipeline">
+  <div class="page-header"><div class="breadcrumb">smartingest / <span>pipeline</span></div><h1>Pipeline Runs</h1><p>Step-by-step execution trace for the latest run.</p></div>
+  <div class="grid g2">
+    <div class="card">
+      <div class="sec-head"><div class="sec-title">Run #1 · Latest</div><div class="status-pill ok" style="font-size:9px"><div class="pulse"></div>Success</div></div>
+      <div>
+        <div class="tl-item"><div class="tl-icon ok">🥉</div><div><div class="tl-name">Bronze Layer</div><div class="tl-det">8,130 rows ingested · 3 sources</div></div><div class="tl-time">0.16s</div></div>
+        <div class="tl-item"><div class="tl-icon warn">🥈</div><div><div class="tl-name">Silver Layer</div><div class="tl-det">7,251 clean rows · 2 flags raised</div></div><div class="tl-time">0.13s</div></div>
+        <div class="tl-item"><div class="tl-icon ok">🥇</div><div><div class="tl-name">Gold Layer</div><div class="tl-det">6 tables · DuckDB SQL</div></div><div class="tl-time">0.29s</div></div>
+        <div class="tl-item"><div class="tl-icon ok">🔍</div><div><div class="tl-name">Anomaly Detection</div><div class="tl-det">Isolation Forest · score −0.4317</div></div><div class="tl-time">0.22s</div></div>
+        <div class="tl-item"><div class="tl-icon ok">📄</div><div><div class="tl-name">AI Health Report</div><div class="tl-det">Template report saved to reports/</div></div><div class="tl-time">0.00s</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec-head"><div class="sec-title">Quality Flags</div><div class="sec-meta">Silver layer</div></div>
+      <div style="margin-bottom:16px"><div class="flag">⚑ HIGH_DROP_RATE:17.24%</div><div class="flag">⚑ DUPES_REMOVED:125</div></div>
+      <div class="sec-title" style="font-size:13px;margin-bottom:10px">Drop Rates by Source</div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div><div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px;color:var(--text2);margin-bottom:3px"><span>Crop Production</span><span style="color:var(--amber)">17.2%</span></div><div class="prog"><div class="prog-f" style="width:17.2%;background:var(--amber)"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px;color:var(--text2);margin-bottom:3px"><span>Hospital Infra</span><span style="color:var(--green)">0.0%</span></div><div class="prog"><div class="prog-f" style="width:1%;background:var(--green)"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px;color:var(--text2);margin-bottom:3px"><span>Weather API</span><span style="color:var(--green)">0.0%</span></div><div class="prog"><div class="prog-f" style="width:1%;background:var(--green)"></div></div></div>
+      </div>
+      <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
+        <div class="sec-title" style="font-size:13px;margin-bottom:10px">Step Timing</div>
+        <div class="chart-wrap"><canvas id="timingChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BRONZE -->
+<div class="page" id="page-bronze">
+  <div class="page-header"><div class="breadcrumb">smartingest / layers / <span>bronze</span></div><h1>🥉 Bronze Layer</h1><p>Raw ingestion from 3 heterogeneous sources. Parquet files with source metadata and timestamps.</p></div>
+  <div class="grid g3" style="margin-bottom:14px">
+    <div class="card card-sm"><div class="kpi-label" style="color:var(--bronze)">📄 CSV Source</div><div style="font-family:var(--font-head);font-weight:700;font-size:18px">5,100 rows</div><div style="font-size:11px;color:var(--text2);margin-top:3px">crop_production.csv</div><div style="margin-top:7px;font-family:var(--font-mono);font-size:10px;color:var(--text3)">data.gov.in schema · 8 cols</div></div>
+    <div class="card card-sm"><div class="kpi-label" style="color:var(--bronze)">📦 JSON Source</div><div style="font-family:var(--font-head);font-weight:700;font-size:18px">3,000 rows</div><div style="font-size:11px;color:var(--text2);margin-top:3px">hospital_infrastructure.json</div><div style="margin-top:7px;font-family:var(--font-mono);font-size:10px;color:var(--text3)">NHP schema · 15 cols</div></div>
+    <div class="card card-sm"><div class="kpi-label" style="color:var(--bronze)">🌐 REST API</div><div style="font-family:var(--font-head);font-weight:700;font-size:18px">30 rows</div><div style="font-size:11px;color:var(--text2);margin-top:3px">open-meteo.com · free</div><div style="margin-top:7px;font-family:var(--font-mono);font-size:10px;color:var(--text3)">New Delhi · 30-day daily</div></div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><div class="sec-head"><div class="sec-title">Schema — Crop Production</div><div class="sec-meta">crop_production.parquet</div></div>
+      <table class="dt"><thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead><tbody>
+        <tr><td class="td-m td-mono">state_name</td><td class="td-mono" style="color:var(--accent)">string</td><td>Indian state (15 unique)</td></tr>
+        <tr><td class="td-m td-mono">crop_year</td><td class="td-mono" style="color:var(--gold)">int64</td><td>Harvest year 2010–2023</td></tr>
+        <tr><td class="td-m td-mono">season</td><td class="td-mono" style="color:var(--accent)">string</td><td>Kharif / Rabi / Zaid</td></tr>
+        <tr><td class="td-m td-mono">crop</td><td class="td-mono" style="color:var(--accent)">string</td><td>10 crop varieties</td></tr>
+        <tr><td class="td-m td-mono">area_hectares</td><td class="td-mono" style="color:var(--accent2)">float64</td><td>Area under cultivation</td></tr>
+        <tr><td class="td-m td-mono">production_tonnes</td><td class="td-mono" style="color:var(--accent2)">float64</td><td>Total output</td></tr>
+      </tbody></table>
+    </div>
+    <div class="card"><div class="sec-head"><div class="sec-title">Schema — Hospital Infrastructure</div><div class="sec-meta">hospital_infrastructure.parquet</div></div>
+      <table class="dt"><thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead><tbody>
+        <tr><td class="td-m td-mono">hospital_id</td><td class="td-mono" style="color:var(--accent)">string</td><td>Unique identifier</td></tr>
+        <tr><td class="td-m td-mono">state / district</td><td class="td-mono" style="color:var(--accent)">string</td><td>Location hierarchy</td></tr>
+        <tr><td class="td-m td-mono">hospital_type</td><td class="td-mono" style="color:var(--accent)">string</td><td>Gov / Private / Trust</td></tr>
+        <tr><td class="td-m td-mono">beds_total</td><td class="td-mono" style="color:var(--gold)">int64</td><td>Total bed capacity</td></tr>
+        <tr><td class="td-m td-mono">doctors_count</td><td class="td-mono" style="color:var(--gold)">int64</td><td>Medical staff count</td></tr>
+        <tr><td class="td-m td-mono">accredited</td><td class="td-mono" style="color:var(--green)">bool</td><td>Quality accreditation</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- SILVER -->
+<div class="page" id="page-silver">
+  <div class="page-header"><div class="breadcrumb">smartingest / layers / <span>silver</span></div><h1>🥈 Silver Layer</h1><p>Schema enforcement, null handling, deduplication, and business rule validation.</p><div class="status-row"><div class="status-pill warn"><div class="pulse"></div>2 quality flags</div></div></div>
+  <div class="grid g3" style="margin-bottom:14px">
+    <div class="card card-sm"><div class="kpi-label">Crop · After Clean</div><div style="font-family:var(--font-head);font-weight:700;font-size:20px;letter-spacing:-.5px">4,221 <span style="font-size:11px;font-weight:400;color:var(--text2)">rows</span></div><div style="margin-top:5px;font-size:11px;color:var(--amber)">↓ 879 rows dropped (17.2%)</div><div class="prog" style="margin-top:8px"><div class="prog-f" style="width:82.8%;background:var(--silver)"></div></div></div>
+    <div class="card card-sm"><div class="kpi-label">Hospital · After Clean</div><div style="font-family:var(--font-head);font-weight:700;font-size:20px;letter-spacing:-.5px">3,000 <span style="font-size:11px;font-weight:400;color:var(--text2)">rows</span></div><div style="margin-top:5px;font-size:11px;color:var(--green)">✓ 0 dropped (0.0%)</div><div class="prog" style="margin-top:8px"><div class="prog-f" style="width:100%;background:var(--green)"></div></div></div>
+    <div class="card card-sm"><div class="kpi-label">Weather · After Clean</div><div style="font-family:var(--font-head);font-weight:700;font-size:20px;letter-spacing:-.5px">30 <span style="font-size:11px;font-weight:400;color:var(--text2)">rows</span></div><div style="margin-top:5px;font-size:11px;color:var(--green)">✓ 0 dropped (0.0%)</div><div class="prog" style="margin-top:8px"><div class="prog-f" style="width:100%;background:var(--green)"></div></div></div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><div class="sec-head"><div class="sec-title">Null Rates — Crop</div><div class="sec-meta">% nulls per column</div></div><div class="chart-wrap"><canvas id="nullChart"></canvas></div></div>
+    <div class="card"><div class="sec-head"><div class="sec-title">Validation Rules</div><div class="sec-meta">silver.py logic</div></div>
+      <table class="dt"><thead><tr><th>Rule</th><th>Source</th><th>Result</th></tr></thead><tbody>
+        <tr><td>Drop null key cols</td><td class="td-mono">crop</td><td style="color:var(--amber)">879 dropped</td></tr>
+        <tr><td>Deduplicate rows</td><td class="td-mono">crop</td><td style="color:var(--amber)">125 removed</td></tr>
+        <tr><td>Validate season</td><td class="td-mono">crop</td><td style="color:var(--green)">Fixed</td></tr>
+        <tr><td>Beds overflow fix</td><td class="td-mono">hospital</td><td style="color:var(--green)">Fixed</td></tr>
+        <tr><td>India lat/lon bbox</td><td class="td-mono">hospital</td><td style="color:var(--green)">Passed</td></tr>
+        <tr><td>Temp inversion</td><td class="td-mono">weather</td><td style="color:var(--green)">None found</td></tr>
+        <tr><td>Schema type cast</td><td class="td-mono">all</td><td style="color:var(--green)">✓ Enforced</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- GOLD -->
+<div class="page" id="page-gold">
+  <div class="page-header"><div class="breadcrumb">smartingest / layers / <span>gold</span></div><h1>🥇 Gold Layer</h1><p>Analytics-ready tables produced by DuckDB SQL. GROUP BY, RANK() window functions, cross-domain JOINs.</p></div>
+  <div class="grid g2" style="margin-bottom:14px">
+    <div class="card">
+      <div class="sec-head"><div class="sec-title">Top Crop Producers</div><div class="sec-meta">RANK() OVER (PARTITION BY crop)</div></div>
+      <table class="dt"><thead><tr><th>#</th><th>State</th><th>Crop</th><th>Production</th></tr></thead><tbody>
+        <tr><td><span class="rank r1">1</span></td><td class="td-m">Uttar Pradesh</td><td class="td-mono">Sugarcane</td><td class="td-mono">712,404 t</td></tr>
+        <tr><td><span class="rank r2">2</span></td><td class="td-m">Maharashtra</td><td class="td-mono">Sugarcane</td><td class="td-mono">698,231 t</td></tr>
+        <tr><td><span class="rank r3">3</span></td><td class="td-m">Punjab</td><td class="td-mono">Wheat</td><td class="td-mono">645,918 t</td></tr>
+        <tr><td><span class="rank rn">4</span></td><td class="td-m">Haryana</td><td class="td-mono">Wheat</td><td class="td-mono">589,402 t</td></tr>
+        <tr><td><span class="rank rn">5</span></td><td class="td-m">Karnataka</td><td class="td-mono">Rice</td><td class="td-mono">534,771 t</td></tr>
+      </tbody></table>
+    </div>
+    <div class="card"><div class="sec-head"><div class="sec-title">Hospital Beds by State</div><div class="sec-meta">SUM(beds_total) GROUP BY state</div></div><div class="chart-wrap"><canvas id="hospitalChart"></canvas></div></div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="sec-head"><div class="sec-title">Gold Tables Catalog</div><div class="sec-meta">DuckDB SQL patterns</div></div>
+    <table class="dt"><thead><tr><th>Table</th><th>Rows</th><th>SQL Pattern</th><th>Description</th></tr></thead><tbody>
+      <tr><td class="td-m td-mono">crop_state_summary</td><td class="td-mono">749</td><td><span class="flag" style="background:rgba(0,212,255,.07);border-color:rgba(0,212,255,.18);color:var(--accent);margin:0">GROUP BY</span></td><td>State + year + season agg</td></tr>
+      <tr><td class="td-m td-mono">crop_top_producers</td><td class="td-mono">50</td><td><span class="flag" style="background:rgba(123,97,255,.07);border-color:rgba(123,97,255,.18);color:var(--accent2);margin:0">RANK() OVER</span></td><td>Top 5 per crop · window fn</td></tr>
+      <tr><td class="td-m td-mono">hospital_state_summary</td><td class="td-mono">60</td><td><span class="flag" style="background:rgba(0,212,255,.07);border-color:rgba(0,212,255,.18);color:var(--accent);margin:0">GROUP BY</span></td><td>Hospital KPIs by state + type</td></tr>
+      <tr><td class="td-m td-mono">weather_rolling_avg</td><td class="td-mono">30</td><td><span class="flag" style="background:rgba(123,97,255,.07);border-color:rgba(123,97,255,.18);color:var(--accent2);margin:0">AVG() OVER</span></td><td>7-day rolling window</td></tr>
+      <tr><td class="td-m td-mono">crop_weather_join</td><td class="td-mono">140</td><td><span class="flag" style="background:rgba(245,200,66,.08);border-color:rgba(245,200,66,.18);color:var(--gold);margin:0">LEFT JOIN</span></td><td>Cross-domain correlation</td></tr>
+      <tr><td class="td-m td-mono">kpi_summary</td><td class="td-mono">1</td><td><span class="flag" style="background:rgba(34,197,94,.07);border-color:rgba(34,197,94,.18);color:var(--green);margin:0">SUBQUERY</span></td><td>Single-row KPI snapshot</td></tr>
+    </tbody></table>
+  </div>
+  <div class="card"><div class="sec-head"><div class="sec-title">Weather — 7-Day Rolling Averages</div><div class="sec-meta">AVG() OVER (ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)</div></div><div class="chart-wrap"><canvas id="weatherChart"></canvas></div></div>
+</div>
+
+<!-- ANOMALY -->
+<div class="page" id="page-anomaly">
+  <div class="page-header"><div class="breadcrumb">smartingest / ai / <span>anomaly-detection</span></div><h1>🔍 Anomaly Detection</h1><p>scikit-learn Isolation Forest trained on 18 pipeline quality metrics. Flags abnormal runs automatically.</p><div class="status-row"><div class="status-pill ok"><div class="pulse"></div>No anomalies detected</div></div></div>
+  <div class="grid g3" style="margin-bottom:14px">
+    <div class="card" style="text-align:center">
+      <div class="ring-wrap"><svg viewBox="0 0 100 100" width="100" height="100"><circle class="ring-track" cx="50" cy="50" r="38"/><circle class="ring-fill" cx="50" cy="50" r="38" stroke="#22c55e" stroke-dasharray="131 239" stroke-dashoffset="0"/></svg><div class="ring-lbl"><span style="color:var(--green)">−0.43</span><span class="ring-sub">score</span></div></div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--text2)">Anomaly Score</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:3px">More negative = more anomalous</div>
+    </div>
+    <div class="card"><div class="sec-title" style="margin-bottom:12px">Model Config</div>
+      <table class="dt"><tbody>
+        <tr><td style="color:var(--text3)">Algorithm</td><td class="td-m td-mono">Isolation Forest</td></tr>
+        <tr><td style="color:var(--text3)">n_estimators</td><td class="td-m td-mono">100</td></tr>
+        <tr><td style="color:var(--text3)">contamination</td><td class="td-m td-mono">0.05 (5%)</td></tr>
+        <tr><td style="color:var(--text3)">Features</td><td class="td-m td-mono">18 quality metrics</td></tr>
+        <tr><td style="color:var(--text3)">Scaler</td><td class="td-m td-mono">StandardScaler</td></tr>
+        <tr><td style="color:var(--text3)">History runs</td><td class="td-m td-mono">1 run</td></tr>
+        <tr><td style="color:var(--text3)">Decision</td><td class="td-m" style="color:var(--green)">✓ Normal</td></tr>
+      </tbody></table>
+    </div>
+    <div class="card"><div class="sec-title" style="margin-bottom:12px">Top Feature Contributors</div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:3px;font-family:var(--font-mono)"><span>hospital_avg_null_rate</span><span style="color:var(--amber)">z=3.80</span></div><div class="prog"><div class="prog-f" style="width:76%;background:var(--amber)"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:3px;font-family:var(--font-mono)"><span>hospital_max_null_rate</span><span style="color:var(--amber)">z=2.31</span></div><div class="prog"><div class="prog-f" style="width:46%;background:var(--amber)"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:3px;font-family:var(--font-mono)"><span>crop_rows_out</span><span style="color:var(--accent)">z=1.74</span></div><div class="prog"><div class="prog-f" style="width:35%;background:var(--accent)"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:3px;font-family:var(--font-mono)"><span>hospital_rows_in</span><span>z=1.01</span></div><div class="prog"><div class="prog-f" style="width:20%;background:var(--text3)"></div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card"><div class="sec-head"><div class="sec-title">Quality Metrics Heatmap</div><div class="sec-meta">18 features · Isolation Forest input</div></div><div class="chart-wrap"><canvas id="heatChart" style="max-height:180px"></canvas></div></div>
+</div>
+
+<!-- REPORT -->
+<div class="page" id="page-report">
+  <div class="page-header"><div class="breadcrumb">smartingest / ai / <span>health-report</span></div><h1>📄 AI Health Report</h1><p>Natural language pipeline summary generated by Gemini API (falls back to template report).</p></div>
+  <div class="grid g2">
+    <div class="card" style="grid-column:1/-1">
+      <div class="sec-head"><div><div class="sec-title">Run Report · 2026-04-20 08:00 UTC</div><div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-top:2px">Source: template_fallback · pipeline v1.0.0</div></div><div class="status-pill ok" style="font-size:9px"><div class="pulse"></div>Generated</div></div>
+      <div class="report-body">
+        <p><strong>Ingestion Summary.</strong> The Bronze layer successfully ingested data from three sources: a crop production CSV, a hospital infrastructure JSON file, and a weather REST API. Total rows ingested across all sources reached 8,130. All three sources completed without critical errors, and raw Parquet files were persisted with source metadata and timestamps.</p>
+        <p><strong>Data Quality Summary.</strong> During Silver layer processing, the crop dataset moved from 5,100 to 4,221 rows (drop rate: 17.2%), with 2 quality flags raised. The hospital dataset processed 3,000 rows down to 3,000 (drop rate: 0.0%). Weather data retained 30 of 30 records. Combined quality flags: 2. No anomalies detected; the run is within normal parameters.</p>
+        <p><strong>Analytics Summary.</strong> The Gold layer produced 6 analytical tables: state-level crop aggregations, top producers by crop using window functions, hospital infrastructure KPIs by state, 7-day rolling weather averages, and a cross-domain crop-weather join. All tables saved as Parquet and CSV. Pipeline ran end-to-end successfully.</p>
+      </div>
+    </div>
+    <div class="card"><div class="sec-title" style="margin-bottom:12px">Raw Metrics</div>
+      <table class="dt"><tbody>
+        <tr><td style="color:var(--text3)">bronze_total_rows</td><td class="td-m td-mono">8,130</td></tr>
+        <tr><td style="color:var(--text3)">silver_total_flags</td><td class="td-m td-mono" style="color:var(--amber)">2</td></tr>
+        <tr><td style="color:var(--text3)">gold_tables</td><td class="td-m td-mono">6</td></tr>
+        <tr><td style="color:var(--text3)">anomaly_detected</td><td class="td-m td-mono" style="color:var(--green)">false</td></tr>
+        <tr><td style="color:var(--text3)">anomaly_score</td><td class="td-m td-mono">−0.4317</td></tr>
+      </tbody></table>
+    </div>
+    <div class="card"><div class="sec-title" style="margin-bottom:12px">Enable Gemini AI</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.7">
+        Get a free key at<br><span style="font-family:var(--font-mono);color:var(--accent);font-size:11px">aistudio.google.com/app/apikey</span><br><br>
+        Add to your <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:11px">.env</code>:<br>
+        <div style="margin-top:6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-family:var(--font-mono);font-size:11px;color:var(--accent)">GEMINI_API_KEY=your_key</div><br>
+        Free tier: 15 req/min — enough for every run.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- API -->
+<div class="page" id="page-api">
+  <div class="page-header"><div class="breadcrumb">smartingest / serving / <span>api</span></div><h1>⚙ FastAPI Endpoints</h1><p>Run: <code style="font-family:var(--font-mono);color:var(--accent);font-size:11px">uvicorn api:app --reload --port 8000</code> · Docs at <code style="font-family:var(--font-mono);color:var(--accent);font-size:11px">localhost:8000/docs</code></p></div>
+  <div class="grid g2" style="margin-bottom:14px">
+    <div class="card"><div class="sec-title" style="margin-bottom:12px">Gold Data</div>
+      <div class="ep-list">
+        <div class="ep"><span class="method get">GET</span><span class="ep-path">/gold/kpi</span><span class="ep-desc">KPI snapshot</span></div>
+        <div class="ep"><span class="method get">GET</span><span class="ep-path">/gold/crop-summary</span><span class="ep-desc">State crop agg</span></div>
+        <div class="ep"><span class="method get">GET</span><span class="ep-path">/gold/top-producers</span><span class="ep-desc">Top 5 per crop</span></div>
+        <div class="ep"><span class="method get">GET</span><span class="ep-path">/gold/hospital-summary</span><span class="ep-desc">Hospital KPIs</span></div>
+        <div class="ep"><span class="method get">GET</span><span class="ep-path">/gold/weather</span><span class="ep-desc">Rolling averages</span></div>
+        <div class="ep"><span class="method get">GET</span><span class="ep-path">/gold/crop-weather</span><span class="ep-desc">Cross-domain join</span></div>
+      </div>
+    </div>
+    <div class="card"><div class="sec-title" style="margin-bottom:12px">Health & Control</div>
+      <div class="ep-list">
+        <div class="ep"><span class="method get">GET</span><span class="ep-path">/health/latest</span><span class="ep-desc">AI report MD</span></div>
+        <div class="ep"><span class="method get">GET</span><span class="ep-path">/health/anomaly</span><span class="ep-desc">IsoForest result</span></div>
+        <div class="ep"><span class="method get">GET</span><span class="ep-path">/pipeline/status</span><span class="ep-desc">Last run status</span></div>
+        <div class="ep"><span class="method post">POST</span><span class="ep-path">/pipeline/run</span><span class="ep-desc">Trigger run</span></div>
+        <div class="ep"><span class="method get">GET</span><span class="ep-path">/ui</span><span class="ep-desc">This dashboard</span></div>
+        <div class="ep"><span class="method get">GET</span><span class="ep-path">/docs</span><span class="ep-desc">Swagger UI</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="card"><div class="sec-title" style="margin-bottom:12px">Tech Stack</div>
+    <div style="display:flex;flex-wrap:wrap;gap:7px">
+      <div class="chip">Python 3.11+</div><div class="chip">Pandas 2.2</div><div class="chip">DuckDB 0.10</div><div class="chip">PyArrow 16</div><div class="chip">scikit-learn 1.4</div><div class="chip">Isolation Forest</div><div class="chip">FastAPI 0.111</div><div class="chip">Streamlit 1.35</div><div class="chip">Plotly 5</div><div class="chip">Loguru 0.7</div><div class="chip">Gemini API</div><div class="chip">open-meteo API</div><div class="chip">Pytest 8.2</div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+<script>
+// NAV
+document.querySelectorAll('.nav-item').forEach(el=>{
+  el.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    el.classList.add('active');
+    const p=document.getElementById('page-'+el.dataset.page);
+    if(p)p.classList.add('active');
+  });
+});
+
+function simulateRun(){
+  const b=document.querySelector('.run-btn');
+  b.disabled=true; b.innerHTML='⟳ Running…';
+  setTimeout(()=>{
+    b.disabled=false; b.innerHTML='▶ Run Pipeline';
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.querySelector('[data-page="pipeline"]').classList.add('active');
+    document.getElementById('page-pipeline').classList.add('active');
+  },2000);
+}
+
+// CHART DEFAULTS
+Chart.defaults.color='#7b91a8';
+Chart.defaults.font.family="'DM Mono',monospace";
+Chart.defaults.font.size=10;
+const GC='rgba(30,42,56,0.7)';
+const TC='#3d5068';
+const TT={backgroundColor:'#0d1117',borderColor:'#1e2a38',borderWidth:1,titleColor:'#e2eaf4',bodyColor:'#7b91a8',padding:9,titleFont:{family:"'Syne',sans-serif",weight:'700'}};
+
+// Row flow
+new Chart(document.getElementById('rowFlowChart'),{
+  type:'bar',
+  data:{labels:['Crop','Hospital','Weather'],datasets:[
+    {label:'Bronze',data:[5100,3000,30],backgroundColor:'rgba(212,132,90,.55)',borderColor:'rgba(212,132,90,.9)',borderWidth:1,borderRadius:4},
+    {label:'Silver',data:[4221,3000,30],backgroundColor:'rgba(157,184,200,.45)',borderColor:'rgba(157,184,200,.8)',borderWidth:1,borderRadius:4}
+  ]},
+  options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:true,labels:{color:'#7b91a8',boxWidth:9,padding:14,font:{family:"'DM Mono'",size:10}}},tooltip:TT},scales:{x:{grid:{color:GC},ticks:{color:TC}},y:{grid:{color:GC},ticks:{color:TC}}}}
+});
+
+// Gold donut
+new Chart(document.getElementById('goldChart'),{
+  type:'doughnut',
+  data:{labels:['crop_state_summary','crop_top_producers','hospital_state','weather_rolling','crop_weather','kpi_summary'],
+    datasets:[{data:[749,50,60,30,140,1],backgroundColor:['rgba(245,200,66,.7)','rgba(245,200,66,.45)','rgba(0,212,255,.55)','rgba(96,165,250,.55)','rgba(123,97,255,.55)','rgba(34,197,94,.55)'],borderColor:'transparent',hoverOffset:5}]},
+  options:{responsive:true,maintainAspectRatio:true,cutout:'62%',plugins:{legend:{display:true,position:'right',labels:{color:'#7b91a8',boxWidth:9,padding:10,font:{family:"'DM Mono'",size:9}}},tooltip:TT}}
+});
+
+// Timing
+new Chart(document.getElementById('timingChart'),{
+  type:'bar',
+  data:{labels:['Bronze','Silver','Gold','Anomaly','Report'],
+    datasets:[{data:[0.16,0.13,0.29,0.22,0.00],backgroundColor:['rgba(212,132,90,.55)','rgba(157,184,200,.45)','rgba(245,200,66,.55)','rgba(123,97,255,.55)','rgba(34,197,94,.45)'],borderRadius:3,borderWidth:0}]},
+  options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',plugins:{legend:{display:false},tooltip:TT},scales:{x:{grid:{color:GC},ticks:{color:TC},title:{display:true,text:'seconds',color:TC}},y:{grid:{color:'transparent'},ticks:{color:'#7b91a8'}}}}
+});
+
+// Null rate
+new Chart(document.getElementById('nullChart'),{
+  type:'bar',
+  data:{labels:['production_t','area_ha','yield_kg','season','crop','district','state','crop_year'],
+    datasets:[{data:[4.45,4.21,3.97,3.88,3.76,3.52,3.41,3.18],
+      backgroundColor:ctx=>ctx.raw>4?'rgba(245,158,11,.55)':'rgba(157,184,200,.38)',borderRadius:3,borderWidth:0}]},
+  options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',plugins:{legend:{display:false},tooltip:TT},scales:{x:{grid:{color:GC},ticks:{color:TC},title:{display:true,text:'null %',color:TC}},y:{grid:{color:'transparent'},ticks:{color:'#7b91a8',font:{size:9}}}}}
+});
+
+// Hospital beds
+new Chart(document.getElementById('hospitalChart'),{
+  type:'bar',
+  data:{labels:['Uttar Pradesh','Maharashtra','Bihar','West Bengal','Tamil Nadu','Rajasthan','Karnataka','Gujarat'],
+    datasets:[{data:[148320,132400,98100,87600,81200,76800,71500,68300],backgroundColor:'rgba(0,212,255,.45)',borderColor:'rgba(0,212,255,.75)',borderWidth:1,borderRadius:3}]},
+  options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',plugins:{legend:{display:false},tooltip:TT},scales:{x:{grid:{color:GC},ticks:{color:TC}},y:{grid:{color:'transparent'},ticks:{color:'#7b91a8',font:{size:9}}}}}
+});
+
+// Weather
+const days=Array.from({length:30},(_,i)=>{const d=new Date('2026-03-21');d.setDate(d.getDate()+i);return d.toLocaleDateString('en-IN',{month:'short',day:'numeric'});});
+const tmax=[38.2,39.1,37.8,40.2,41.0,39.5,38.7,37.9,38.4,39.8,41.2,40.1,38.9,37.5,36.8,38.0,39.3,40.5,41.1,39.7,38.3,37.6,38.8,40.0,41.3,39.9,38.5,37.7,39.0,40.4];
+const tmin=[24.1,23.8,25.2,24.6,23.9,25.1,26.0,24.8,23.7,24.3,23.5,25.0,24.7,26.1,25.4,24.2,23.6,24.9,23.8,25.3,26.2,24.5,23.9,25.7,24.1,25.5,26.0,24.8,23.4,25.1];
+const prec=[0,0,2.1,0,0,8.4,15.2,0,0,1.3,0,5.7,0,0,22.1,8.9,0,0,0,3.4,0,0,11.2,0,6.8,0,0,18.5,4.2,0];
+new Chart(document.getElementById('weatherChart'),{
+  type:'bar',
+  data:{labels:days,datasets:[
+    {type:'line',label:'Temp Max',data:tmax,borderColor:'rgba(248,113,113,.85)',backgroundColor:'transparent',tension:0.4,pointRadius:0,yAxisID:'y',borderWidth:1.5},
+    {type:'line',label:'Temp Min',data:tmin,borderColor:'rgba(96,165,250,.85)',backgroundColor:'transparent',tension:0.4,pointRadius:0,yAxisID:'y',borderWidth:1.5},
+    {type:'bar',label:'Precip mm',data:prec,backgroundColor:'rgba(123,97,255,.35)',borderColor:'rgba(123,97,255,.65)',borderWidth:1,borderRadius:2,yAxisID:'y2'}
+  ]},
+  options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:true,labels:{color:'#7b91a8',boxWidth:9,padding:14,font:{family:"'DM Mono'",size:10}}},tooltip:TT},scales:{x:{grid:{color:GC},ticks:{color:TC,maxTicksLimit:10}},y:{grid:{color:GC},ticks:{color:TC},title:{display:true,text:'Temp (°C)',color:TC}},y2:{position:'right',grid:{drawOnChartArea:false},ticks:{color:TC},title:{display:true,text:'Precip (mm)',color:TC}}}}
+});
+
+// Heatmap
+new Chart(document.getElementById('heatChart'),{
+  type:'bar',
+  data:{labels:['crop_rows_in','crop_rows_out','crop_drop','crop_flags','crop_avg_null','crop_max_null','hosp_rows_in','hosp_rows_out','hosp_drop','hosp_flags','hosp_avg_null','hosp_max_null','wth_rows_in','wth_rows_out','wth_drop','wth_flags','wth_avg_null','wth_max_null'],
+    datasets:[{data:[5100,4221,0.172,2,0.0204,0.0445,3000,3000,0,0,0.0056,0.055,30,30,0,0,0,0],
+      backgroundColor:ctx=>{const d=[5100,4221,0.172,2,0.0204,0.0445,3000,3000,0,0,0.0056,0.055,30,30,0,0,0,0];const n=d[ctx.dataIndex]/Math.max(...d);return `rgba(${Math.round(n*245+10)},${Math.round((1-n)*197+58)},80,0.65)`;},borderRadius:3,borderWidth:0}]},
+  options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false},tooltip:TT},scales:{x:{grid:{color:'transparent'},ticks:{color:TC,font:{size:8},maxRotation:45}},y:{grid:{color:GC},ticks:{color:TC}}}}
+});
+</script>
+</body>
+</html>

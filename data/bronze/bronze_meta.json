@@ -1,0 +1,55 @@
+{
+  "layer": "bronze",
+  "run_ts": "2026-04-22T13-57-28",
+  "sources": {
+    "crop_csv": {
+      "source": "csv",
+      "file": "C:\\Users\\udaya\\smartingest\\data\\raw\\crop_production.csv",
+      "ingestion_time": "2026-04-22T13:57:21.671148",
+      "row_count": 5100,
+      "columns": [
+        "state_name",
+        "district_name",
+        "crop_year",
+        "season",
+        "crop",
+        "area_hectares",
+        "yield_kg_per_ha",
+        "production_tonnes"
+      ]
+    },
+    "hospital_json": {
+      "source": "json",
+      "file": "C:\\Users\\udaya\\smartingest\\data\\raw\\hospital_infrastructure.json",
+      "ingestion_time": "2026-04-22T13:57:23.887911",
+      "row_count": 3000,
+      "columns": [
+        "hospital_id",
+        "hospital_name",
+        "state",
+        "district",
+        "hospital_type",
+        "speciality",
+        "beds_total",
+        "beds_available",
+        "doctors_count",
+        "nurses_count",
+        "established_year",
+        "accredited",
+        "latitude",
+        "longitude",
+        "last_updated"
+      ]
+    },
+    "weather_api": {
+      "source": "api",
+      "url": "https://api.open-meteo.com/v1/forecast",
+      "latitude": 28.625,
+      "longitude": 77.25,
+      "timezone": "Asia/Kolkata",
+      "ingestion_time": "2026-04-22T13:57:28.580980",
+      "row_count": 37
+    }
+  },
+  "total_rows": 8137
+}

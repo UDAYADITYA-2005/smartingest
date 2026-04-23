@@ -1,0 +1,23 @@
+[
+  {
+    "run_ts": "2026-04-22T13-57-30",
+    "crop_rows_in": 5100,
+    "crop_rows_out": 4228,
+    "crop_drop_rate": 0.171,
+    "crop_flag_count": 2,
+    "crop_avg_null_rate": 0.0205,
+    "crop_max_null_rate": 0.0452,
+    "hospital_rows_in": 3000,
+    "hospital_rows_out": 3000,
+    "hospital_drop_rate": 0.0,
+    "hospital_flag_count": 0,
+    "hospital_avg_null_rate": 0.0056,
+    "hospital_max_null_rate": 0.055,
+    "weather_rows_in": 37,
+    "weather_rows_out": 37,
+    "weather_drop_rate": 0.0,
+    "weather_flag_count": 0,
+    "weather_avg_null_rate": 0.0,
+    "weather_max_null_rate": 0.0
+  }
+]

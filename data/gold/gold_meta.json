@@ -1,0 +1,12 @@
+{
+  "layer": "gold",
+  "run_ts": "2026-04-22T13-57-31",
+  "tables": {
+    "crop_state_summary": 754,
+    "crop_top_producers": 50,
+    "hospital_state_summary": 60,
+    "weather_rolling_avg": 37,
+    "crop_weather_join": 140,
+    "kpi_summary": 1
+  }
+}

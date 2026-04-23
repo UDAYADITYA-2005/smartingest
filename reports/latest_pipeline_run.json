@@ -1,0 +1,29 @@
+{
+  "run_id": "2026-04-22T13-57-21",
+  "steps": {
+    "bronze": {
+      "status": "ok",
+      "rows": 8137
+    },
+    "silver": {
+      "status": "ok",
+      "rows": 0
+    },
+    "gold": {
+      "status": "ok",
+      "rows": 6
+    },
+    "anomaly": {
+      "status": "ok",
+      "is_anomaly": false,
+      "score": -0.4317
+    },
+    "report": {
+      "status": "ok",
+      "path": "C:\\Users\\udaya\\smartingest\\reports\\latest_report.md"
+    }
+  },
+  "status": "success",
+  "elapsed_sec": 12.19,
+  "failed_steps": []
+}

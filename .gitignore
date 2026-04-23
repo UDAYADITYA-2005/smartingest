@@ -1,0 +1,11 @@
+# Environments
+.env
+.venv/
+
+# Python Cache
+__pycache__/
+*.pyc
+
+# Logs and Data (Optional, but recommended so you don't upload heavy/sensitive files)
+logs/
+# data/  <-- Uncomment this if your data folder contains large or sensitive datasets
