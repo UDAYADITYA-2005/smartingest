@@ -55,8 +55,44 @@ The system operates as a sequential, multi-layered pipeline that transforms raw 
 5.  **Intelligence Layer (ML & AI):** An independent monitoring layer that evaluates pipeline health. A scikit-learn Isolation Forest model analyzes the Silver-layer quality metrics to detect data anomalies, while the Google Gemini API translates these metrics into natural-language health reports.
 6.  **Serving Layer (Delivery & UI):** The finalized Gold data, ML anomaly scores, and AI reports are exposed via a FastAPI REST backend. This data powers a standalone HTML/Chart.js dashboard and a Streamlit monitoring interface for real-time visibility.
 
-**Core Technology Stack**
-* **Data Processing & Storage:** Python, Pandas, PyArrow, DuckDB, Apache Parquet
-* **Machine Learning & AI:** scikit-learn (Isolation Forest), Google Gemini API
-* **Backend & APIs:** FastAPI, Uvicorn
-* **Monitoring & UI:** Streamlit, HTML/CSS/JS, Chart.js
+**How to Run the Project locally**
+
+**1. Clone the repository**
+```bash
+git clone https://github.com/UDAYADITYA-2005/smartingest.git
+cd smartingest
+```
+
+**2. Create and activate a virtual environment**
+* **Windows:**
+    ```bash
+    python -m venv .venv
+    .venv\Scripts\activate
+    ```
+* **Mac / Linux:**
+    ```bash
+    python3 -m venv .venv
+    source .venv/bin/activate
+    ```
+
+**3. Install dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+**4. Set up environment variables**
+Create a `.env` file in the root directory and add your Google Gemini API key to enable AI-generated reports. *(Note: The pipeline works without this using a built-in template fallback).*
+```env
+GEMINI_API_KEY=your_key_here
+```
+
+**5. Run the pipeline**
+```bash
+python pipeline.py
+```
+
+**6. Start the API server and view the dashboard**
+```bash
+uvicorn api:app --reload --port 8000
+```
+Once the server is running, open your web browser and navigate to `http://localhost:8000/dashboard` to view the live HTML dashboard.
